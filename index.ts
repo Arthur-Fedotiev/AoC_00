@@ -2,13 +2,15 @@ import { readFileSync } from "fs";
 
 const input = readFileSync("./input.txt", "utf-8");
 
-const mostCaloriesCarriedByTopThreeElves = (input: string) => {
+const sum = (arr: number[]) => arr.reduce((acc, curr) => acc + curr, 0);
+
+const mostCaloriesCarriedByTopThreeElves = (input: string): number[] => {
   const elves = input.split(/\r?\n\r?\n/).map((elfStash) => {
     return elfStash.split(/\r?\n/).map((item) => parseInt(item));
   });
 
   const mostCaloriesCarriedByTopThreeElves = elves.reduce((acc, curr) => {
-    const currCaloriesTotal = curr.reduce((acc, curr) => acc + curr, 0);
+    const currCaloriesTotal = sum(curr);
 
     if (acc.length < 3) {
       acc.push(currCaloriesTotal);
@@ -24,10 +26,9 @@ const mostCaloriesCarriedByTopThreeElves = (input: string) => {
     return acc;
   }, []);
 
-  console.log(
-    "mostCalories",
-    mostCaloriesCarriedByTopThreeElves.reduce((acc, curr) => acc + curr, 0)
-  );
+  return mostCaloriesCarriedByTopThreeElves;
 };
 
-mostCaloriesCarriedByTopThreeElves(input);
+const result = sum(mostCaloriesCarriedByTopThreeElves(input));
+
+console.log(result);
