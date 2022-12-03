@@ -2,33 +2,80 @@ import { readFileSync } from "fs";
 
 const input = readFileSync("./input.txt", "utf-8");
 
-const sum = (arr: number[]) => arr.reduce((acc, curr) => acc + curr, 0);
-
-const mostCaloriesCarriedByTopThreeElves = (input: string): number[] => {
-  const elves = input.split(/\r?\n\r?\n/).map((elfStash) => {
-    return elfStash.split(/\r?\n/).map((item) => parseInt(item));
-  });
-
-  const mostCaloriesCarriedByTopThreeElves = elves.reduce((acc, curr) => {
-    const currCaloriesTotal = sum(curr);
-
-    if (acc.length < 3) {
-      acc.push(currCaloriesTotal);
-      return acc;
-    }
-
-    const lowestCalories = Math.min(...acc);
-
-    if (currCaloriesTotal > lowestCalories) {
-      acc.splice(acc.indexOf(lowestCalories), 1, currCaloriesTotal);
-    }
-
-    return acc;
-  }, []);
-
-  return mostCaloriesCarriedByTopThreeElves;
+const EnemyWinShapesMap = {
+  A: "Z",
+  B: "X",
+  C: "Y",
 };
 
-const result = sum(mostCaloriesCarriedByTopThreeElves(input));
+const MyWinShapesMap = {
+  A: "Y",
+  B: "Z",
+  C: "X",
+};
 
-console.log(result);
+const DrawShapesMap = {
+  A: "X",
+  B: "Y",
+  C: "Z",
+};
+
+const MyShapesScore = {
+  X: 1,
+  Y: 2,
+  Z: 3,
+};
+
+type EnemyShapeKeys = "A" | "B" | "C";
+type MyShapeKeys = "X" | "Y" | "Z";
+
+const getShapeScoreToLoose = (enemyShape: EnemyShapeKeys) => {
+  const shape = EnemyWinShapesMap[enemyShape] as keyof typeof MyShapesScore;
+
+  return MyShapesScore[shape];
+};
+
+const getShapeScoreToDraw = (enemyShape: EnemyShapeKeys) => {
+  const shape = DrawShapesMap[enemyShape] as keyof typeof MyShapesScore;
+
+  return MyShapesScore[shape];
+};
+
+const getShapeScoreToWin = (enemyShape: EnemyShapeKeys) => {
+  const shape = MyWinShapesMap[enemyShape] as keyof typeof MyShapesScore;
+
+  return MyShapesScore[shape];
+};
+
+const calcScoreForRound = (
+  enemyShape: EnemyShapeKeys,
+  myShape: MyShapeKeys
+) => {
+  const roundHandlersMap = {
+    X: [0, getShapeScoreToLoose],
+    Y: [3, getShapeScoreToDraw],
+    Z: [6, getShapeScoreToWin],
+  } as const;
+
+  const roundScore = roundHandlersMap[myShape][0];
+  const myShapeScore = roundHandlersMap[myShape][1](enemyShape);
+
+  return myShapeScore + roundScore;
+};
+
+const calcScore = (input: string) => {
+  const rounds = input
+    .split(/\r?\n/)
+    .map((line) => line.split(" ")) as unknown as [
+    EnemyShapeKeys,
+    MyShapeKeys
+  ][];
+
+  const totalScore = rounds.reduce((acc, [enemyShape, myShape]) => {
+    return acc + calcScoreForRound(enemyShape, myShape);
+  }, 0);
+
+  return totalScore;
+};
+
+console.log(calcScore(input));
