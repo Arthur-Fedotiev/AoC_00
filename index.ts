@@ -39,31 +39,30 @@ const lowerCharMap: Record<string, number> = Object.keys(upperCharMap).reduce(
   {}
 );
 
-// console.log(lowerCharMap);
-
 const getRuckSaks = (input: string) => input.split(/\r?\n/g);
-const getCompartments = (rucksacks: string[]) =>
-  rucksacks.map((rucksack) => [
-    rucksack.slice(0, rucksack.length / 2),
-    rucksack.slice(rucksack.length / 2),
-  ]);
+const getElvesGroups = (rucksacks: string[], groupSize = 3) => {
+  const groups: string[][] = [];
 
-const findDuplicatedItem = (compartment1: string, compartment2: string) =>
-  compartment1.split("").find((item1) => compartment2.includes(item1));
+  for (let i = 0; i < rucksacks.length; i += groupSize) {
+    const group = rucksacks.slice(i, i + groupSize);
 
-const calcScoreOfDuplicatedItems = (duplicatedItems: string[]) =>
+    groups.push(group);
+  }
+
+  return groups;
+};
+
+const findCommonItem = ([ruck1, ruck2, ruck3]: string[]): string =>
+  ruck1.split("").find((item) => ruck2.includes(item) && ruck3.includes(item))!;
+
+const calcScoreOutOfItemsItems = (duplicatedItems: string[]) =>
   duplicatedItems.reduce(
     (total, item) => (upperCharMap[item] ?? lowerCharMap[item]) + total,
     0
   );
 
-const compartments = getCompartments(getRuckSaks(input));
-const duplicatedItems = compartments.map(
-  ([comp1, comp2]) => findDuplicatedItem(comp1, comp2) as string
+const result = calcScoreOutOfItemsItems(
+  getElvesGroups(getRuckSaks(input)).map(findCommonItem)
 );
-
-const result = calcScoreOfDuplicatedItems(duplicatedItems);
-
-console.log("getRuckSaks(input)", getRuckSaks(input)[1]);
 
 console.log("result", result);
