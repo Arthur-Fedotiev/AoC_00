@@ -1,34 +1,51 @@
 import { readFileSync } from "fs";
+import { ElfAssignment } from "./ElfAssignment";
+import { clamp } from "./util";
 
 const input = readFileSync("./input.txt", "utf-8");
+const clampZeroOne = (num: number) => clamp(num, 0, 1);
 
-const sum = (arr: number[]) => arr.reduce((acc, curr) => acc + curr, 0);
+const PAIR_DELIMINATOR = ",";
 
-const mostCaloriesCarriedByTopThreeElves = (input: string): number[] => {
-  const elves = input.split(/\r?\n\r?\n/).map((elfStash) => {
-    return elfStash.split(/\r?\n/).map((item) => parseInt(item));
-  });
+const toElfAssignments = (pairRange: string): [ElfAssignment, ElfAssignment] =>
+  pairRange
+    .split(PAIR_DELIMINATOR)
+    .map((elfRangeString) => new ElfAssignment(elfRangeString)) as [
+    ElfAssignment,
+    ElfAssignment
+  ];
 
-  const mostCaloriesCarriedByTopThreeElves = elves.reduce((acc, curr) => {
-    const currCaloriesTotal = sum(curr);
+const getElfAssignments = (input: string): [ElfAssignment, ElfAssignment][] =>
+  input.split(/\r?\n/g).filter(Boolean).map(toElfAssignments);
 
-    if (acc.length < 3) {
-      acc.push(currCaloriesTotal);
-      return acc;
-    }
+const countContainedByAssignments = (
+  elfAssignments: [ElfAssignment, ElfAssignment][]
+): number =>
+  elfAssignments.reduce(
+    (total, [firstElfAssignment, secondElfAssignment]) =>
+      total +
+      clampZeroOne(
+        firstElfAssignment.amIFullyContainedBy(secondElfAssignment) +
+          secondElfAssignment.amIFullyContainedBy(firstElfAssignment)
+      ),
+    0
+  );
 
-    const lowestCalories = Math.min(...acc);
+const countOverlaps = (
+  elfAssignments: [ElfAssignment, ElfAssignment][]
+): number =>
+  elfAssignments.reduce((total, [firstElfAssignment, secondElfAssignment]) => {
+    const overlaps = clampZeroOne(
+      firstElfAssignment.hasOverlapWith(secondElfAssignment) +
+        secondElfAssignment.hasOverlapWith(firstElfAssignment)
+    );
+    return total + overlaps;
+  }, 0);
 
-    if (currCaloriesTotal > lowestCalories) {
-      acc.splice(acc.indexOf(lowestCalories), 1, currCaloriesTotal);
-    }
+const elfAssignments = getElfAssignments(input);
 
-    return acc;
-  }, []);
+const part1Result = countContainedByAssignments(elfAssignments);
+const part2Result = countOverlaps(elfAssignments);
 
-  return mostCaloriesCarriedByTopThreeElves;
-};
-
-const result = sum(mostCaloriesCarriedByTopThreeElves(input));
-
-console.log(result);
+console.log(part1Result);
+console.log(part2Result);
